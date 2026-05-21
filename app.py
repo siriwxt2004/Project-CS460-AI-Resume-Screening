@@ -25,7 +25,14 @@ try:
     ml_model = joblib.load(
         "models/hr_model.pkl"
     )
+    prediction = model.predict(
+        [resume_text]
+    )
 
+    score = model.predict_proba(
+        [resume_text]
+    )[0][1]
+    
 except:
 
     ml_model = None
@@ -777,8 +784,9 @@ with col2:
 # ---------- ANALYZE ----------
 
 if st.button(
-    "🚀 Analyze",
-    width="stretch"
+    "Analyze",
+    use_container_width=True,
+    type="primary"
 ):
 
     if not api_key:
@@ -850,7 +858,7 @@ if st.button(
                 )
 
                 parsed = parse_resume(
-                    text
+                    f
                 )
 
                 resumes.append({
@@ -859,11 +867,7 @@ if st.button(
 
                     "content": text,
 
-                    "profile": {
-                        "name": f.name,
-                        "skills": [],
-                        "experience": text[:300]
-                    }
+                    "profile": parsed
 
                 })
 
