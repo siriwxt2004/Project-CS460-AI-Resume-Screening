@@ -1,5 +1,6 @@
 import streamlit as st
 import PyPDF2
+from src.retrain import retrain_model
 import pandas as pd
 import google.generativeai as genai
 import json
@@ -15,7 +16,7 @@ from src.validation import validate_system
 from src.scoring_engine import (
     calculate_skill_match,
 )
-from src.retrain import retrain_model
+
 
 from src.explain_engine import explain
 
@@ -1264,11 +1265,15 @@ if st.session_state.leaderboard:
 
             like, dislike = st.columns(2)
 
-            if dislike.button(
+            # =========================
+            # ACCEPT
+            # =========================
 
-                "👎 HR ไม่เห็นด้วย",
+            if like.button(
 
-                key=f"b{i}"
+                "👍 HR เห็นด้วย",
+
+                key=f"accept_{i}"
 
             ):
 
@@ -1281,31 +1286,41 @@ if st.session_state.leaderboard:
 
                     cand["score"],
 
-                    "reject"
+                    "accept"
 
                 )
 
-                # retrain model realtime
+                # realtime retrain
                 retrain_model()
 
-                # update metrics
+                # metrics
                 st.session_state[
                     "metrics"
                 ][
                     "total"
                 ] += 1
 
+                st.session_state[
+                    "metrics"
+                ][
+                    "agreed"
+                ] += 1
+
                 st.success(
-                    "✅ ระบบเรียนรู้ใหม่แล้ว"
+                    "✅ AI retrained successfully"
                 )
 
                 st.rerun()
 
+            # =========================
+            # REJECT
+            # =========================
+
             if dislike.button(
 
                 "👎 HR ไม่เห็นด้วย",
 
-                key=f"b{i}"
+                key=f"reject_{i}"
 
             ):
 
@@ -1322,10 +1337,10 @@ if st.session_state.leaderboard:
 
                 )
 
-                # retrain model realtime
+                # realtime retrain
                 retrain_model()
 
-                # update metrics
+                # metrics
                 st.session_state[
                     "metrics"
                 ][
@@ -1333,7 +1348,7 @@ if st.session_state.leaderboard:
                 ] += 1
 
                 st.success(
-                    "✅ ระบบเรียนรู้ใหม่แล้ว"
+                    "✅ AI retrained successfully"
                 )
 
                 st.rerun()
