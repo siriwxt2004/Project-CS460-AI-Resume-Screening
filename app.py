@@ -5,6 +5,7 @@ import google.generativeai as genai
 import json
 import re
 import joblib
+
 from src.nlp_engine import extract_features
 from src.vector_engine import semantic_search
 from src.dataset_builder import save_feedback
@@ -14,6 +15,7 @@ from src.validation import validate_system
 from src.scoring_engine import (
     calculate_skill_match,
 )
+from src.retrain import retrain_model
 
 from src.explain_engine import explain
 
@@ -1262,40 +1264,6 @@ if st.session_state.leaderboard:
 
             like, dislike = st.columns(2)
 
-            if like.button(
-
-                "👍 HR เห็นด้วย",
-
-                key=f"a{i}"
-
-            ):
-
-                save_feedback(
-
-                    jd_input,
-
-                    cand["content"],
-
-                    cand["score"],
-
-                    "accept"
-
-                )
-
-                st.session_state[
-                    "metrics"
-                ][
-                    "total"
-                ] += 1
-
-                st.session_state[
-                    "metrics"
-                ][
-                    "agreed"
-                ] += 1
-
-                st.rerun()
-
             if dislike.button(
 
                 "👎 HR ไม่เห็นด้วย",
@@ -1304,6 +1272,7 @@ if st.session_state.leaderboard:
 
             ):
 
+                # save feedback
                 save_feedback(
 
                     jd_input,
@@ -1316,11 +1285,56 @@ if st.session_state.leaderboard:
 
                 )
 
+                # retrain model realtime
+                retrain_model()
+
+                # update metrics
                 st.session_state[
                     "metrics"
                 ][
                     "total"
                 ] += 1
+
+                st.success(
+                    "✅ ระบบเรียนรู้ใหม่แล้ว"
+                )
+
+                st.rerun()
+
+            if dislike.button(
+
+                "👎 HR ไม่เห็นด้วย",
+
+                key=f"b{i}"
+
+            ):
+
+                # save feedback
+                save_feedback(
+
+                    jd_input,
+
+                    cand["content"],
+
+                    cand["score"],
+
+                    "reject"
+
+                )
+
+                # retrain model realtime
+                retrain_model()
+
+                # update metrics
+                st.session_state[
+                    "metrics"
+                ][
+                    "total"
+                ] += 1
+
+                st.success(
+                    "✅ ระบบเรียนรู้ใหม่แล้ว"
+                )
 
                 st.rerun()
 # ---------- SYSTEM VALIDATION ----------
@@ -1352,17 +1366,11 @@ try:
             row["label"]
         )
 
-        if row["score"] >= 60:
+        text = row["jd"] + " " + row["resume"]
 
-            pred_labels.append(
-                "accept"
-            )
+        pred = ml_model.predict([text])[0]
 
-        else:
-
-            pred_labels.append(
-                "reject"
-            )
+        pred_labels.append(pred)
 
     metrics = validate_system(
 
