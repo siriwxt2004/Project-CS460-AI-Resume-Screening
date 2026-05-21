@@ -2,7 +2,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-def semantic_search(jd_text, resumes):
+def semantic_search(
+    jd_text,
+    resumes,
+    top_k=5
+):
 
     documents = [jd_text]
 
@@ -32,14 +36,19 @@ def semantic_search(jd_text, resumes):
 
         ranked.append({
 
-            "resume": resumes[i],
-            "score": float(score)
+            "name": resumes[i]["name"],
+
+            "content": resumes[i]["content"],
+
+            "profile": resumes[i]["profile"],
+
+            "semantic_score": float(score)
 
         })
 
     ranked.sort(
-        key=lambda x: x["score"],
+        key=lambda x: x["semantic_score"],
         reverse=True
     )
 
-    return ranked
+    return ranked[:top_k]

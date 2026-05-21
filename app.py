@@ -25,15 +25,12 @@ try:
     ml_model = joblib.load(
         "models/hr_model.pkl"
     )
-    prediction = model.predict(
-        [resume_text]
-    )
 
-    score = model.predict_proba(
-        [resume_text]
-    )[0][1]
-    
-except:
+except Exception as e:
+
+    print(e)
+
+    ml_model = None
 
     ml_model = None
 st.set_page_config(
@@ -875,12 +872,10 @@ if st.button(
             "Semantic Search..."
         ):
 
-            shortlisted = (
-                semantic_search(
-                    jd_input,
-                    resumes,
-                    top_k=len(resumes)
-                )
+            shortlisted = semantic_search(
+                jd_input,
+                resumes,
+                top_k=len(resumes)
             )
 
         with st.spinner(
