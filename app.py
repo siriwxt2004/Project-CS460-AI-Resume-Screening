@@ -48,7 +48,34 @@ def load_model():
 
 
 # โหลด model ครั้งแรก
-ml_model = load_model()
+# ---------- LOAD MODEL ----------
+
+def load_model():
+
+    try:
+
+        model = joblib.load(
+            "models/hr_model.pkl"
+        )
+
+        print("✅ ML model loaded")
+
+        return model
+
+    except Exception as e:
+
+        print(
+            "❌ Load model error:",
+            e
+        )
+
+        return None
+
+
+# โหลด model เข้า session
+if "ml_model" not in st.session_state:
+
+    st.session_state.ml_model = load_model()
 st.set_page_config(
     page_title="AI Recruitment Pro",
     page_icon="🎯",
@@ -382,7 +409,9 @@ def predict_candidate(
     resume
 ):
 
-    if ml_model is None:
+    model = st.session_state.ml_model
+
+    if model is None:
 
         return {
 
@@ -396,18 +425,18 @@ def predict_candidate(
 
         text = jd + " " + resume
 
-        pred = ml_model.predict(
+        pred = model.predict(
             [text]
         )[0]
 
         if hasattr(
-            ml_model,
+            model,
             "predict_proba"
         ):
 
             prob = max(
 
-                ml_model.predict_proba(
+                model.predict_proba(
                     [text]
                 )[0]
 
@@ -439,9 +468,6 @@ def predict_candidate(
             "confidence": 0
 
         }
-
-
-
 
 # ---------- SIDEBAR ----------
 
@@ -1304,11 +1330,11 @@ if st.session_state.leaderboard:
 
                 )
 
-                # realtime retrain
-                retrain_model()
+                success = retrain_model()
 
-                # reload latest model
-                ml_model = load_model()
+                if success:
+
+                    st.session_state.ml_model = load_model()
 
                 # metrics
                 st.session_state[
@@ -1354,7 +1380,7 @@ if st.session_state.leaderboard:
                 )
 
                 # realtime retrain
-                retrain_model()
+                success = retrain_model()
 
                 # reload latest model
                 ml_model = load_model()
@@ -1402,7 +1428,7 @@ try:
 
         text = row["jd"] + " " + row["resume"]
 
-        pred = ml_model.predict([text])[0]
+        pred = st.session_state.ml_model.predict([text])[0]
 
         pred_labels.append(pred)
 
