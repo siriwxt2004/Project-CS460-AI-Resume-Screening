@@ -1,26 +1,27 @@
-import spacy
-
-nlp = spacy.load("en_core_web_sm")
+import re
 
 def extract_features(text):
+    text = text.lower()
 
-    doc = nlp(text)
+    skills = [
+        "python",
+        "java",
+        "sql",
+        "machine learning",
+        "data analysis",
+        "communication",
+        "leadership",
+        "tensorflow",
+        "pandas"
+    ]
 
-    skills=[]
+    found_skills = []
 
-    for t in doc:
-
-        if t.is_alpha:
-
-            skills.append(
-                t.text
-            )
+    for skill in skills:
+        if skill in text:
+            found_skills.append(skill)
 
     return {
-        "skills":
-        list(
-            set(
-                skills
-            )
-        )
+        "skills": found_skills,
+        "word_count": len(text.split())
     }
