@@ -19,37 +19,6 @@ from src.scoring_engine import (
 
 from src.explain_engine import explain
 
-# ---------- CONFIG ----------
-# ---------- ML MODEL ----------
-# ---------- LOAD MODEL ----------
-
-def load_model():
-
-    try:
-
-        model = joblib.load(
-            "models/hr_model.pkl"
-        )
-
-        print(
-            "✅ ML model loaded"
-        )
-
-        return model
-
-    except Exception as e:
-
-        print(
-            "❌ Load model error:",
-            e
-        )
-
-        return None
-
-
-# โหลด model ครั้งแรก
-# ---------- LOAD MODEL ----------
-
 def load_model():
 
     try:
@@ -72,7 +41,6 @@ def load_model():
         return None
 
 
-# โหลด model เข้า session
 if "ml_model" not in st.session_state:
 
     st.session_state.ml_model = load_model()
