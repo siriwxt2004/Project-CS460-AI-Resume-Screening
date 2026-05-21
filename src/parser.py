@@ -1,16 +1,16 @@
 import re
 
 
-def parse_resume(file):
+def parse_resume(text):
 
     text = ""
 
     # ---------- PDF ----------
-    if file.name.endswith(".pdf"):
+    if text.name.endswith(".pdf"):
 
         import PyPDF2
 
-        pdf = PyPDF2.PdfReader(file)
+        pdf = PyPDF2.PdfReader(text)
 
         for page in pdf.pages:
 
@@ -20,19 +20,19 @@ def parse_resume(file):
                 text += t + "\n"
 
     # ---------- TXT ----------
-    elif file.name.endswith(".txt"):
+    elif text.name.endswith(".txt"):
 
-        text = file.read().decode(
+        text = text.read().decode(
             "utf-8",
             errors="ignore"
         )
 
     # ---------- DOCX ----------
-    elif file.name.endswith(".docx"):
+    elif text.name.endswith(".docx"):
 
         from docx import Document
 
-        doc = Document(file)
+        doc = Document(text)
 
         text = "\n".join(
             p.text for p in doc.paragraphs

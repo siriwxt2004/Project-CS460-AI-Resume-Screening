@@ -877,7 +877,7 @@ if st.button(
                 )
 
                 parsed = parse_resume(
-                    f
+                    text
                 )
 
                 resumes.append({
