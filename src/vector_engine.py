@@ -1,101 +1,45 @@
-import numpy as np
-import faiss
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-from sentence_transformers import SentenceTransformer
 
-# =========================
-# LOAD MODEL
-# =========================
+def semantic_search(jd_text, resumes):
 
-model = SentenceTransformer(
-    "sentence-transformers/all-MiniLM-L6-v2"
-)
-
-# =========================
-# EMBEDDING
-# =========================
-
-def get_embedding(text):
-
-    embedding = model.encode(
-        [text]
-    )
-
-    return np.array(
-        embedding
-    ).astype("float32")
-
-# =========================
-# SEMANTIC SEARCH
-# =========================
-
-def semantic_search(
-
-    jd_text,
-
-    resumes,
-
-    top_k=10
-
-):
-
-    # ---------- JD VECTOR ----------
-
-    jd_vector = get_embedding(
-        jd_text
-    )
-
-    # ---------- RESUME VECTOR ----------
-
-    vectors = []
+    documents = [jd_text]
 
     for r in resumes:
+        documents.append(r["content"])
 
-        vec = model.encode(
-            [r["content"]]
-        )[0]
-
-        vectors.append(
-            vec
-        )
-
-    vectors = np.array(
-        vectors
-    ).astype("float32")
-
-    # ---------- FAISS ----------
-
-    dimension = vectors.shape[1]
-
-    index = faiss.IndexFlatL2(
-        dimension
+    vectorizer = TfidfVectorizer(
+        stop_words="english"
     )
 
-    index.add(
-        vectors
+    vectors = vectorizer.fit_transform(
+        documents
     )
 
-    # ---------- SEARCH ----------
+    jd_vector = vectors[0:1]
 
-    distances, indices = index.search(
+    resume_vectors = vectors[1:]
 
+    similarities = cosine_similarity(
         jd_vector,
+        resume_vectors
+    )[0]
 
-        min(
-            top_k,
-            len(resumes)
-        )
+    ranked = []
 
+    for i, score in enumerate(similarities):
+
+        ranked.append({
+
+            "resume": resumes[i],
+            "score": float(score)
+
+        })
+
+    ranked.sort(
+        key=lambda x: x["score"],
+        reverse=True
     )
 
-    # ---------- RESULT ----------
-
-    results = []
-
-    for idx in indices[0]:
-
-        results.append(
-            resumes[idx]
-        )
-
-    return results
+    return ranked
