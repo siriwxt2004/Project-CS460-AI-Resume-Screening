@@ -1285,6 +1285,7 @@ if st.session_state.leaderboard:
                 key=f"accept_{i}"
 
             ):
+                st.write("saving feedback...")
 
                 save_feedback(
 
@@ -1316,7 +1317,7 @@ if st.session_state.leaderboard:
                 ][
                     "agreed"
                 ] += 1
-
+                
                 st.success(
                     "✅ AI retrained realtime"
                 )

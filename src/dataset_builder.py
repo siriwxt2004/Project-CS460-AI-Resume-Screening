@@ -1,7 +1,6 @@
-import json
 import os
+import pandas as pd
 
-DATASET_PATH = "data/feedback.jsonl"
 
 def save_feedback(
     jd,
@@ -10,6 +9,7 @@ def save_feedback(
     label
 ):
 
+    # สร้าง folder data ถ้ายังไม่มี
     os.makedirs(
         "data",
         exist_ok=True
@@ -27,19 +27,36 @@ def save_feedback(
 
     }
 
-    with open(
-        DATASET_PATH,
-        "a",
-        encoding="utf-8"
-    ) as f:
+    csv_path = "data/feedback.csv"
 
-        f.write(
+    # ถ้ายังไม่มีไฟล์
+    if not os.path.exists(csv_path):
 
-            json.dumps(
-                row,
-                ensure_ascii=False
-            )
+        df = pd.DataFrame([row])
 
-            + "\n"
+        df.to_csv(
+            csv_path,
+            index=False
+        )
+
+    else:
+
+        df = pd.read_csv(csv_path)
+
+        new_df = pd.concat(
+
+            [
+                df,
+                pd.DataFrame([row])
+            ],
+
+            ignore_index=True
 
         )
+
+        new_df.to_csv(
+            csv_path,
+            index=False
+        )
+
+    print("✅ feedback saved")
