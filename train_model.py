@@ -5,30 +5,26 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
 import joblib
-import os
 
-# load dataset
 df = pd.read_csv(
     "data/feedback.csv"
 )
 
-# combine text
 df["text"] = (
-    df["jd"].fillna("") + " " +
-    df["resume"].fillna("")
+    df["jd"].astype(str)
+    + " "
+    + df["resume"].astype(str)
 )
 
 X = df["text"]
 y = df["label"]
 
-# build model
 model = Pipeline([
 
     (
         "tfidf",
         TfidfVectorizer(
-            max_features=3000,
-            stop_words="english"
+            max_features=3000
         )
     ),
 
@@ -41,19 +37,8 @@ model = Pipeline([
 
 ])
 
-# train
-model.fit(
-    X,
-    y
-)
+model.fit(X, y)
 
-# create models folder
-os.makedirs(
-    "models",
-    exist_ok=True
-)
-
-# save model
 joblib.dump(
     model,
     "models/hr_model.pkl"
