@@ -31,8 +31,6 @@ except Exception as e:
     print(e)
 
     ml_model = None
-
-    ml_model = None
 st.set_page_config(
     page_title="AI Recruitment Pro",
     page_icon="🎯",
@@ -366,39 +364,63 @@ def predict_candidate(
     resume
 ):
 
-    if not ml_model:
+    if ml_model is None:
 
         return {
 
             "prediction": "unknown",
+
             "confidence": 0
 
         }
 
-    text = jd + " " + resume
+    try:
 
-    pred = ml_model.predict(
-        [text]
-    )[0]
+        text = jd + " " + resume
 
-    prob = max(
-
-        ml_model.predict_proba(
+        pred = ml_model.predict(
             [text]
         )[0]
 
-    )
+        if hasattr(
+            ml_model,
+            "predict_proba"
+        ):
 
-    return {
+            prob = max(
 
-        "prediction": pred,
+                ml_model.predict_proba(
+                    [text]
+                )[0]
 
-        "confidence": round(
-            prob * 100,
-            1
-        )
+            )
 
-    }
+        else:
+
+            prob = 0.5
+
+        return {
+
+            "prediction": str(pred),
+
+            "confidence": round(
+                prob * 100,
+                1
+            )
+
+        }
+
+    except Exception as e:
+
+        print("ML ERROR:", e)
+
+        return {
+
+            "prediction": "error",
+
+            "confidence": 0
+
+        }
 
 
 
