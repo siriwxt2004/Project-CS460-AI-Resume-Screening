@@ -859,7 +859,11 @@ if st.button(
 
                     "content": text,
 
-                    "profile": parsed
+                    "profile": {
+                        "name": f.name,
+                        "skills": [],
+                        "experience": text[:300]
+                    }
 
                 })
 
