@@ -6,7 +6,6 @@ import google.generativeai as genai
 import json
 import re
 import joblib
-
 from src.nlp_engine import extract_features
 from src.vector_engine import semantic_search
 from src.dataset_builder import save_feedback
@@ -22,18 +21,34 @@ from src.explain_engine import explain
 
 # ---------- CONFIG ----------
 # ---------- ML MODEL ----------
+# ---------- LOAD MODEL ----------
 
-try:
+def load_model():
 
-    ml_model = joblib.load(
-        "models/hr_model.pkl"
-    )
+    try:
 
-except Exception as e:
+        model = joblib.load(
+            "models/hr_model.pkl"
+        )
 
-    print(e)
+        print(
+            "✅ ML model loaded"
+        )
 
-    ml_model = None
+        return model
+
+    except Exception as e:
+
+        print(
+            "❌ Load model error:",
+            e
+        )
+
+        return None
+
+
+# โหลด model ครั้งแรก
+ml_model = load_model()
 st.set_page_config(
     page_title="AI Recruitment Pro",
     page_icon="🎯",
@@ -1277,7 +1292,6 @@ if st.session_state.leaderboard:
 
             ):
 
-                # save feedback
                 save_feedback(
 
                     jd_input,
@@ -1293,6 +1307,9 @@ if st.session_state.leaderboard:
                 # realtime retrain
                 retrain_model()
 
+                # reload latest model
+                ml_model = load_model()
+
                 # metrics
                 st.session_state[
                     "metrics"
@@ -1307,7 +1324,7 @@ if st.session_state.leaderboard:
                 ] += 1
 
                 st.success(
-                    "✅ AI retrained successfully"
+                    "✅ AI retrained realtime"
                 )
 
                 st.rerun()
@@ -1324,7 +1341,6 @@ if st.session_state.leaderboard:
 
             ):
 
-                # save feedback
                 save_feedback(
 
                     jd_input,
@@ -1340,6 +1356,9 @@ if st.session_state.leaderboard:
                 # realtime retrain
                 retrain_model()
 
+                # reload latest model
+                ml_model = load_model()
+
                 # metrics
                 st.session_state[
                     "metrics"
@@ -1348,7 +1367,7 @@ if st.session_state.leaderboard:
                 ] += 1
 
                 st.success(
-                    "✅ AI retrained successfully"
+                    "✅ AI retrained realtime"
                 )
 
                 st.rerun()
