@@ -3,77 +3,28 @@ import re
 
 def parse_resume(text):
 
-    text = ""
-
-    # ---------- PDF ----------
-    if text.name.endswith(".pdf"):
-
-        import PyPDF2
-
-        pdf = PyPDF2.PdfReader(text)
-
-        for page in pdf.pages:
-
-            t = page.extract_text()
-
-            if t:
-                text += t + "\n"
-
-    # ---------- TXT ----------
-    elif text.name.endswith(".txt"):
-
-        text = text.read().decode(
-            "utf-8",
-            errors="ignore"
-        )
-
-    # ---------- DOCX ----------
-    elif text.name.endswith(".docx"):
-
-        from docx import Document
-
-        doc = Document(text)
-
-        text = "\n".join(
-            p.text for p in doc.paragraphs
-        )
-
     # ---------- EMAIL ----------
     email_match = re.search(
-
         r'[\w\.-]+@[\w\.-]+',
-
         text
-
     )
 
     email = (
-
         email_match.group(0)
-
         if email_match
-
         else "-"
-
     )
 
     # ---------- PHONE ----------
     phone_match = re.search(
-
         r'(\+66|0)[0-9\-]{8,12}',
-
         text
-
     )
 
     phone = (
-
         phone_match.group(0)
-
         if phone_match
-
         else "-"
-
     )
 
     # ---------- NAME ----------
@@ -88,7 +39,6 @@ def parse_resume(text):
         if len(line) > 3 and len(line) < 40:
 
             name = line
-
             break
 
     # ---------- SKILLS ----------
