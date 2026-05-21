@@ -1,127 +1,136 @@
-# src/parser.py
-
 import re
-import pdfplumber
-import docx
-
-
-SKILLS_DB = [
-    "python",
-    "java",
-    "sql",
-    "machine learning",
-    "deep learning",
-    "nlp",
-    "tensorflow",
-    "pytorch",
-    "scikit-learn",
-    "pandas",
-    "numpy",
-    "data visualization",
-    "excel",
-    "power bi",
-    "tableau",
-    "flask",
-    "streamlit",
-    "git",
-]
-
-
-def extract_text_from_pdf(file):
-    text = ""
-
-    with pdfplumber.open(file) as pdf:
-        for page in pdf.pages:
-            page_text = page.extract_text()
-
-            if page_text:
-                text += page_text + "\n"
-
-    return text
-
-
-def extract_text_from_docx(file):
-    doc = docx.Document(file)
-
-    text = "\n".join(
-        [para.text for para in doc.paragraphs]
-    )
-
-    return text
-
-
-def extract_email(text):
-    match = re.search(
-        r"[\w\.-]+@[\w\.-]+",
-        text
-    )
-
-    return match.group(0) if match else "-"
-
-
-def extract_phone(text):
-    match = re.search(
-        r"(\+?\d[\d\s\-]{8,15}\d)",
-        text
-    )
-
-    return match.group(0) if match else "-"
-
-
-def extract_name(text):
-    lines = text.split("\n")
-
-    for line in lines:
-        line = line.strip()
-
-        if len(line) > 2 and len(line.split()) <= 4:
-            return line
-
-    return "-"
-
-
-def extract_skills(text):
-    text_lower = text.lower()
-
-    found_skills = []
-
-    for skill in SKILLS_DB:
-        if skill.lower() in text_lower:
-            found_skills.append(skill)
-
-    return list(set(found_skills))
 
 
 def parse_resume(file):
+
     text = ""
 
-    # PDF
+    # ---------- PDF ----------
     if file.name.endswith(".pdf"):
-        text = extract_text_from_pdf(file)
 
-    # DOCX
-    elif file.name.endswith(".docx"):
-        text = extract_text_from_docx(file)
+        import PyPDF2
 
-    # TXT
+        pdf = PyPDF2.PdfReader(file)
+
+        for page in pdf.pages:
+
+            t = page.extract_text()
+
+            if t:
+                text += t + "\n"
+
+    # ---------- TXT ----------
     elif file.name.endswith(".txt"):
-        text = file.read().decode("utf-8")
 
-    else:
-        return {
-            "name": "-",
-            "email": "-",
-            "phone": "-",
-            "skills": [],
-            "text": ""
-        }
+        text = file.read().decode(
+            "utf-8",
+            errors="ignore"
+        )
 
-    profile = {
-        "name": extract_name(text),
-        "email": extract_email(text),
-        "phone": extract_phone(text),
-        "skills": extract_skills(text),
-        "text": text
+    # ---------- DOCX ----------
+    elif file.name.endswith(".docx"):
+
+        from docx import Document
+
+        doc = Document(file)
+
+        text = "\n".join(
+            p.text for p in doc.paragraphs
+        )
+
+    # ---------- EMAIL ----------
+    email_match = re.search(
+
+        r'[\w\.-]+@[\w\.-]+',
+
+        text
+
+    )
+
+    email = (
+
+        email_match.group(0)
+
+        if email_match
+
+        else "-"
+
+    )
+
+    # ---------- PHONE ----------
+    phone_match = re.search(
+
+        r'(\+66|0)[0-9\-]{8,12}',
+
+        text
+
+    )
+
+    phone = (
+
+        phone_match.group(0)
+
+        if phone_match
+
+        else "-"
+
+    )
+
+    # ---------- NAME ----------
+    lines = text.split("\n")
+
+    name = "-"
+
+    for line in lines[:5]:
+
+        line = line.strip()
+
+        if len(line) > 3 and len(line) < 40:
+
+            name = line
+
+            break
+
+    # ---------- SKILLS ----------
+    skill_keywords = [
+
+        "python",
+        "java",
+        "javascript",
+        "react",
+        "flutter",
+        "node.js",
+        "sql",
+        "mysql",
+        "docker",
+        "aws",
+        "machine learning",
+        "nlp",
+        "tensorflow",
+        "pytorch",
+        "fastapi",
+        "git"
+
+    ]
+
+    found_skills = []
+
+    lower_text = text.lower()
+
+    for skill in skill_keywords:
+
+        if skill.lower() in lower_text:
+
+            found_skills.append(skill)
+
+    return {
+
+        "name": name,
+
+        "email": email,
+
+        "phone": phone,
+
+        "skills": found_skills
+
     }
-
-    return profile
