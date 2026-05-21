@@ -1,57 +1,127 @@
+# src/parser.py
+
 import re
+import pdfplumber
+import docx
 
-def parse_resume(text):
 
-    profile = {
-        "name": "",
-        "email": "",
-        "phone": "",
-        "skills": []
-    }
+SKILLS_DB = [
+    "python",
+    "java",
+    "sql",
+    "machine learning",
+    "deep learning",
+    "nlp",
+    "tensorflow",
+    "pytorch",
+    "scikit-learn",
+    "pandas",
+    "numpy",
+    "data visualization",
+    "excel",
+    "power bi",
+    "tableau",
+    "flask",
+    "streamlit",
+    "git",
+]
 
-    # email
-    email_match = re.search(
-        r'[\w\.-]+@[\w\.-]+',
+
+def extract_text_from_pdf(file):
+    text = ""
+
+    with pdfplumber.open(file) as pdf:
+        for page in pdf.pages:
+            page_text = page.extract_text()
+
+            if page_text:
+                text += page_text + "\n"
+
+    return text
+
+
+def extract_text_from_docx(file):
+    doc = docx.Document(file)
+
+    text = "\n".join(
+        [para.text for para in doc.paragraphs]
+    )
+
+    return text
+
+
+def extract_email(text):
+    match = re.search(
+        r"[\w\.-]+@[\w\.-]+",
         text
     )
 
-    if email_match:
-        profile["email"] = email_match.group(0)
+    return match.group(0) if match else "-"
 
-    # phone
-    phone_match = re.search(
-        r'\d{9,10}',
+
+def extract_phone(text):
+    match = re.search(
+        r"(\+?\d[\d\s\-]{8,15}\d)",
         text
     )
 
-    if phone_match:
-        profile["phone"] = phone_match.group(0)
+    return match.group(0) if match else "-"
 
-    # skills
-    skills_db = [
-        "python",
-        "sql",
-        "machine learning",
-        "nlp",
-        "tensorflow",
-        "pandas",
-        "scikit-learn"
-    ]
+
+def extract_name(text):
+    lines = text.split("\n")
+
+    for line in lines:
+        line = line.strip()
+
+        if len(line) > 2 and len(line.split()) <= 4:
+            return line
+
+    return "-"
+
+
+def extract_skills(text):
+    text_lower = text.lower()
 
     found_skills = []
 
-    lower_text = text.lower()
-
-    for skill in skills_db:
-        if skill in lower_text:
+    for skill in SKILLS_DB:
+        if skill.lower() in text_lower:
             found_skills.append(skill)
 
-    profile["skills"] = found_skills
+    return list(set(found_skills))
 
-    # name
-    lines = text.split("\n")
 
-    if lines:
-        profile["name"] = lines[0].strip()
+def parse_resume(file):
+    text = ""
+
+    # PDF
+    if file.name.endswith(".pdf"):
+        text = extract_text_from_pdf(file)
+
+    # DOCX
+    elif file.name.endswith(".docx"):
+        text = extract_text_from_docx(file)
+
+    # TXT
+    elif file.name.endswith(".txt"):
+        text = file.read().decode("utf-8")
+
+    else:
+        return {
+            "name": "-",
+            "email": "-",
+            "phone": "-",
+            "skills": [],
+            "text": ""
+        }
+
+    profile = {
+        "name": extract_name(text),
+        "email": extract_email(text),
+        "phone": extract_phone(text),
+        "skills": extract_skills(text),
+        "text": text
+    }
 
     return profile
