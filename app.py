@@ -522,9 +522,6 @@ with st.sidebar:
         "Gemini Connected"
     )
 
-    st.success(
-        "FAISS Ready"
-    )
 
     st.success(
         "Semantic Search Active"
